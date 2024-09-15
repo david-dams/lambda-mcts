@@ -33,7 +33,7 @@ if __name__ == "__main__":
     root_state = []
     root_node = Node(root_state)
 
-    best_node = mcts(root_node, n_iter=1000, n_max=n_max)
+    best_node = mcts(root_node, n_iter=1000, n_max=n_max, goal = goal)
     print("Best program found:", best_node.state)
     print("Evaluated to:", evaluate(best_node.state))
     print("Goal score:", goal(best_node.state))

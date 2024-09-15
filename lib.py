@@ -73,9 +73,9 @@ class Node:
         ]
         return self.children[choices_weights.index(max(choices_weights))]
 
-    def tree_policy(self, n_max):
+    def tree_policy(self, n_max, goal):
         current_node = self
-        while not current_node.is_terminal(n_max):
+        while not current_node.is_terminal(n_max, goal):
             if not current_node.is_fully_expanded(n_max):
                 current_node.expand(n_max)
                 return random.choice(current_node.children)
@@ -83,11 +83,11 @@ class Node:
                 current_node = current_node.best_child()
         return current_node
 
-    def is_terminal(self, n_max):
+    def is_terminal(self, n_max, goal):
         # Define a termination condition, e.g., maximum depth or perfect score
         return len(self.state) >= n_max or goal(self.state) == 1
 
-    def default_policy(self, n_max):
+    def default_policy(self, n_max, goal):
         current_state = deepcopy(self.state)
         while len(current_state) < n_max:
             possible_actions = self.get_possible_actions(n_max)
@@ -107,9 +107,9 @@ class Node:
             current_node = current_node.parent
 
 # MCTS Algorithm
-def mcts(root, n_iter, n_max):
+def mcts(root, n_iter, n_max, goal):
     for _ in range(n_iter):
-        leaf = root.tree_policy(n_max)
-        reward = leaf.default_policy(n_max)
+        leaf = root.tree_policy(n_max, goal)
+        reward = leaf.default_policy(n_max, goal)
         leaf.backup(reward)
     return root.best_child(c_param=0)
