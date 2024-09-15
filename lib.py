@@ -75,7 +75,7 @@ class Node:
 
     def tree_policy(self, n_max):
         current_node = self
-        while not current_node.is_terminal():
+        while not current_node.is_terminal(n_max):
             if not current_node.is_fully_expanded(n_max):
                 current_node.expand(n_max)
                 return random.choice(current_node.children)
@@ -83,7 +83,7 @@ class Node:
                 current_node = current_node.best_child()
         return current_node
 
-    def is_terminal(self):
+    def is_terminal(self, n_max):
         # Define a termination condition, e.g., maximum depth or perfect score
         return len(self.state) >= n_max or goal(self.state) == 1
 
