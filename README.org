@@ -1,56 +1,15 @@
-* Algorithm synthesis with strongly typed lambda calcalus
+* Lambda MCTS
 
-Basic idea: simply typed lambda calculus with beta reduction "read backwards" to expand tree nodes.
+  Algorithm synthesis based on Monte-Carlo tree search on custom primitives, expressed as lambda terms.
+  
+  Primitives are either *atoms* (terms that do not take arguments) or (curried) *functions*.
 
-Details:
+  Algorithm ASTs are represented as nested arrays of these primitive terms, e.g. for suitably defined primitives:
 
-1. define primitive types as a label collection like INT, or FLOAT.
-2. define concrete nodes either as instances of primitives or as curried functions of definite signature. 
-   ```
-   # assuming `Primitives` is defined
-   add_fun = lambda a : lambda b : a + b
-   add_node = Node(content =  add_fun, type = [Primtives.Int, [Primitives.Int, [Primitives.Int]]] )
-   const_one_node = Node(content = 1, type = Primitives.Int)
-   ```
-3. specify the type of function and desired outcomes. for example,
-   to synthesize x -> 3*x only from addition
-   ```
-   # one wants to map int to int
-   desired_type = [Primitives.Int, [Primitives.Int]]
-   def loss(path_through_tree : Callable):
-       """squared error"""
-       return (path_through_tree(1) - 3) ** 2 + (path_through_tree(0) - 0) ** 2       
-   ```
-4. Denoting by node:t a node of type t, define search functions
-   ```
-   REDUCE = [t, [t']], t' -> t' # applies its first argument to the second one, effectively doing beta reduction without need for alpha conversion
-   SAMPLE = t -> node:t # selects a node from the set of all nodes defined in 2
-   LOOKUP = t, n -> BIND(n) | LOOKUP(t, n-1) # bind to free variable of matching type in current scope or bind to free variable in an upper scope
-   EXPAND(t, n) = REDUCE( EXPAND([t', [t]], n+1), EXPAND(t', n+1)) | LOOKUP(t, n) | SAMPLE(t) # either build an expression that evaluates to the correct type, perform a lookup or sample among the set of all nodes
-   ```
-5. compute the UCB statistics
-   1. for the SAMPLE function, i.e., for each node 
-   2. for the branches of the EXPAND function, i.e., whether to build an expression or do sampling
-6. the path through the tree is then given as a collection of nodes, glued together by REDUCE functions.
-   this collection can be converted into a single function.
-7. update UCB stats with the loss function defined in 3.
-
-edge cases:   
-  1. to ensure we don't descend to infinite depth, a maximum expansion limit has to be set.
-  2. if SAMPLE can find no node of matching type, it can either default to EXPAND or to an "identity" 
-     matching the desired node signature, e.g. if the node is of type [t, [t']], it will just insert a lambda x : x.
-
-In this way, we can build `x -> 3*x` only from addition as
-
-REDUCE[ADD,[REDUCE[REDUCE[ADD, [BIND(0)]], [BIND(0)]]]]
-
-equivalent to
-
-\x -> add(add(x,x),x)
-
-where the two innermost x's are bound to the outermost scope.
-i hope that by using sufficiently complex nodes as well as relying
-on the approache's type safety and turing completeness of the lambda calculus,
-the search space of all computable functions (below the maximum expansion limit) can be explored efficiently enough.
-in the end, i hope an "algorithm synthesizer" can be
-build that outputs a higher order function to synthesize algorithms.
+  + [[ADD, 1], 2] evaluates to 3.
+  + [SIGMOID, [LINEAR]] evaluates to a single layer perceptron, or more precisely to a function with
+    signature a -> b -> c -> (x -> y), i.e. taking in sigmoid steepness, weights and biases to produce a SLP.
+  
+  The state space elements (arrays) correspond to potential nodes in the MCTS tree.
+  
+  A Node is expanded by attaching new terms to the left or right of the current erm.  
