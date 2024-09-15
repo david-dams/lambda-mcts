@@ -50,7 +50,7 @@ class Node:
         actions = []
         # Generate possible insertions to the left and right
         if len(self.state) < n_max:
-            for prim in PRIMITIVES:
+            for prim in Node.primitives:
                 # Insert to the left
                 new_state_left = deepcopy(self.state) + [prim]
                 actions.append(('insert_left', new_state_left))

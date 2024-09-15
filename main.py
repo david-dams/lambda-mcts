@@ -31,6 +31,7 @@ def goal(array):
 if __name__ == "__main__":
     n_max = 5  # Maximum size of the array
     root_state = []
+    Node.primitives = PRIMITIVES # TODO: uff
     root_node = Node(root_state)
 
     best_node = mcts(root_node, n_iter=1000, n_max=n_max, goal = goal)
